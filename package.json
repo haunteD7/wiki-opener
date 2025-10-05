@@ -1,0 +1,13 @@
+{
+  "name": "wiki-opener",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js",
+    "postinstall": "echo 'Все пакеты установлены!'"
+  },
+  "dependencies": {
+    "open": "^9.1.0"
+  }
+}
