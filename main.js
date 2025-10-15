@@ -1,3 +1,4 @@
+const { get } = require("http")
 const https = require("https")
 const readline = require("readline")
 const open = require('open').default
@@ -7,7 +8,7 @@ class WikipediaClient {
         this.#base_URL = base_URL
     }
 
-    find_articles(article) {
+    find_articles(article) { // Query request to wikipedia
         return new Promise((resolve, reject) => {
             const options = {
                 hostname: this.#base_URL,
@@ -27,7 +28,7 @@ class WikipediaClient {
                         const data_JSON = JSON.parse(data)
                         resolve(data_JSON)
                     }
-                    catch(error) {
+                    catch (error) {
                         reject(new Error('Ошибка парсинга JSON: ' + error.message))
                     }
                 })
@@ -40,13 +41,21 @@ class WikipediaClient {
             req.end()
         })
     }
-    extract_article_id(search_data) {
-        try {
-            return search_data.query.search['0'].pageid
+    get_articles_num(search_data) { // Get number of articles, max 10
+        const num = search_data.query.searchinfo.totalhits
+        return num > 10 ? 10 : num
+    }
+    get_article(search_data, num) { // Get article data
+       return search_data.query.search[num];
+    }
+    get_articles_preview(search_data) { 
+        const articles_num = this.get_articles_num(search_data)
+        let preview = ''
+        for (let i = 0; i < articles_num; i++) {
+            preview += `${i}. ${this.get_article(search_data, i).title}\n`
         }
-        catch(error) {
-            throw new Error('Статья не найдена')
-        }
+
+        return preview
     }
 
     #base_URL
@@ -60,7 +69,7 @@ class WikipediaApp {
             output: process.stdout
         })
     }
-    get_input(question) {
+    get_input(question) { // Get input from terminal
         return new Promise((resolve) => {
             this.rl.question(question, resolve)
         })
@@ -73,9 +82,18 @@ class WikipediaApp {
         try {
             const article = await this.get_input('Поиск статьи: ')
             const search_data = await this.client.find_articles(article)
-            const page_id = this.client.extract_article_id(search_data)
-            
-            await open(`https://ru.wikipedia.org/w/index.php?curid=${page_id}`)
+
+            console.log(this.client.get_articles_preview(search_data))
+            let article_num
+            let is_input_invalid = true
+            while(is_input_invalid) { // Input validation
+                article_num = Number(await this.get_input('Выберите статью: '))
+                
+                is_input_invalid = !(Number.isInteger(article_num) && article_num <= 9 && article_num >= 0)
+            }
+            const article_pageid = this.client.get_article(search_data, article_num).pageid
+
+            await open(`https://ru.wikipedia.org/w/index.php?curid=${article_pageid}`)
 
             console.log('Статья успешно открыта!')
         }
