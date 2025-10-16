@@ -46,9 +46,9 @@ class WikipediaClient {
         return num > 10 ? 10 : num
     }
     get_article(search_data, num) { // Get article data
-       return search_data.query.search[num];
+        return search_data.query.search[num];
     }
-    get_articles_preview(search_data) { 
+    get_articles_preview(search_data) {
         const articles_num = this.get_articles_num(search_data)
         let preview = ''
         for (let i = 0; i < articles_num; i++) {
@@ -83,12 +83,17 @@ class WikipediaApp {
             const article = await this.get_input('Поиск статьи: ')
             const search_data = await this.client.find_articles(article)
 
+            if(this.client.get_articles_num(search_data) == 0) {
+                console.log('Ничего не найдено')
+                return;
+            }
+
             console.log(this.client.get_articles_preview(search_data))
             let article_num
             let is_input_invalid = true
-            while(is_input_invalid) { // Input validation
+            while (is_input_invalid) { // Input validation
                 article_num = Number(await this.get_input('Выберите статью: '))
-                
+
                 is_input_invalid = !(Number.isInteger(article_num) && article_num <= 9 && article_num >= 0)
             }
             const article_pageid = this.client.get_article(search_data, article_num).pageid
