@@ -79,35 +79,28 @@ class WikipediaApp {
         this.rl.close()
     }
     async start() {
-        try {
-            const article = await this.get_input('Поиск статьи: ')
-            const search_data = await this.client.find_articles(article)
+        const article = await this.get_input('Поиск статьи: ')
+        const search_data = await this.client.find_articles(article)
 
-            if(this.client.get_articles_num(search_data) == 0) {
-                console.log('Ничего не найдено')
-                return;
-            }
-
-            console.log(this.client.get_articles_preview(search_data))
-            let article_num
-            let is_input_invalid = true
-            while (is_input_invalid) { // Input validation
-                article_num = Number(await this.get_input('Выберите статью: '))
-
-                is_input_invalid = !(Number.isInteger(article_num) && article_num <= 9 && article_num >= 0)
-            }
-            const article_pageid = this.client.get_article(search_data, article_num).pageid
-
-            await open(`https://ru.wikipedia.org/w/index.php?curid=${article_pageid}`)
-
-            console.log('Статья успешно открыта!')
+        if(this.client.get_articles_num(search_data) == 0) {
+            console.log('Ничего не найдено')
+            return;
         }
-        catch (error) {
-            console.log('Ошибка: ' + error.message)
+
+        console.log(this.client.get_articles_preview(search_data))
+        let article_num
+        let is_input_invalid = true
+        while (is_input_invalid) { // Input validation
+            article_num = Number(await this.get_input('Выберите статью: '))
+
+            is_input_invalid = !(Number.isInteger(article_num) && article_num <= 9 && article_num >= 0)
         }
-        finally {
-            this.close()
-        }
+        const article_pageid = this.client.get_article(search_data, article_num).pageid
+
+        await open(`https://ru.wikipedia.org/w/index.php?curid=${article_pageid}`)
+
+        console.log('Статья успешно открыта!')
+        this.close()
     }
 
     #client
